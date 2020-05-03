@@ -1,0 +1,29 @@
+name: Docker Image CI # Actions名称
+
+on: [push] # 执行时机
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Build the Docker image
+      run: |
+        docker login --username=${{ secrets.DOCKER_USN }} registry.ap-southeast-1.aliyuncs.com --password=${{ secrets.DOCKER_PWD }} # 登录docker，并使用Secret里配置的参数
+        docker build -t registry.ap-southeast-1.aliyuncs.com/kewang/utils_api:latest . #执行构建
+        docker push registry.ap-southeast-1.aliyuncs.com/kewang/utils_api:latest # 推送
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: root
+          password: ${{ secrets.SSH_PWD }}
+          port: 22
+          script: |
+            cd ~/apps/utils_api
+            docker-compose pull && docker-compose up -d
