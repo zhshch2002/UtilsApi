@@ -25,5 +25,5 @@ jobs:
           password: ${{ secrets.SSH_PWD }}
           port: 22
           script: |
-            cd ~/apps/utils_api
+            cd ~/apps/UtilsApi
             docker-compose pull && docker-compose up -d
