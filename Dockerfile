@@ -3,7 +3,7 @@ WORKDIR /app
 ADD . /app
 RUN go build -i -v ./cmd/main.go
 
-FROM ubuntu:18.04
+FROM alpine
 LABEL maintainer="zhshch<zhshch@athorx.com>"
 
 WORKDIR /app
