@@ -2,8 +2,13 @@ package controller
 
 import (
 	"UtilsApi/model"
+	"github.com/PuerkitoBio/goquery"
 	"github.com/gin-gonic/gin"
 	"github.com/mmcdole/gofeed"
+	"github.com/zhshch2002/goreq"
+	"net/http"
+	"net/url"
+	"strings"
 	"time"
 )
 
@@ -69,4 +74,60 @@ func getTime(ctx *gin.Context) {
 		"month":     now.Month(),
 		"year":      now.Year(),
 	})
+}
+
+// @Summary 获取网站图标
+// @Description 获取网站图标
+// @Tags Basic
+// @ID favicon
+// @Produce  image/*
+// @Param url query string true "目标网站网址"
+// @Success 200 {object} []byte
+// @Failure 200 {object} controller.JsonResult
+// @Router /v1/favicon [get]
+func favicon(ctx *gin.Context) {
+	u := ctx.Query("url")
+	if u == "" {
+		Ret(ctx).MissParam("缺少url参数")
+		return
+	}
+	a, err := url.Parse(u)
+	if err != nil {
+		Ret(ctx).ServerErr(err)
+		return
+	}
+	h, err := goreq.Get(u).Do().HTML()
+	if err != nil {
+		Ret(ctx).ServerErr(err)
+		return
+	}
+	b, _ := a.Parse("/favicon.ico")
+	icon := b.String()
+
+	h.Find("link[rel]").EachWithBreak(func(i int, sel *goquery.Selection) bool {
+		rels := strings.Split(sel.AttrOr("rel", ""), " ")
+		for _, v := range rels {
+			if v == "icon" && sel.AttrOr("href", "") != "" {
+				b, err := a.Parse(sel.AttrOr("href", ""))
+				if err != nil {
+					continue
+				}
+				icon = b.String()
+				return false
+			}
+		}
+		return true
+	})
+	resp, err := goreq.Get(icon).Do().Resp()
+	if err != nil {
+		Ret(ctx).ServerErr(err)
+		return
+	}
+	if resp.StatusCode != http.StatusOK {
+		Ret(ctx).Err("非200响应")
+		return
+	}
+	ctx.Header("content-type", resp.Header.Get("content-type"))
+	ctx.Writer.WriteHeader(http.StatusOK)
+	_, _ = ctx.Writer.Write(resp.NoDecodeBody)
 }

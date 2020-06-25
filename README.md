@@ -17,6 +17,3 @@ services:
 ```
 
 ## TODO
-* 获取网站ICON
-* 时间
-* IP
