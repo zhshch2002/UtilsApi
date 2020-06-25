@@ -1,53 +1,30 @@
 package controller
 
 import (
-	"UtilsApi/model"
-	"github.com/gofiber/cors"
-	"github.com/gofiber/fiber"
-	"github.com/mmcdole/gofeed"
-	"log"
+	"github.com/gin-gonic/gin"
+	"github.com/swaggo/files"
+	"github.com/swaggo/gin-swagger"
+	"net/http"
 )
 
 func Run() {
-	app := fiber.New()
+	r := gin.Default()
 
-	app.Use(cors.New())
+	v1 := r.Group("/v1")
+	{
+		v1.GET("/rss2json", rss2json)
+		v1.GET("/ip", ip)
+		v1.GET("/time", getTime)
+	}
 
-	app.Get("/", func(c *fiber.Ctx) {
-		c.Send("Hello, World!")
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	r.GET("/", func(ctx *gin.Context) {
+		ctx.Header("Location", "/swagger/index.html")
+		ctx.JSON(http.StatusFound, nil)
+		ctx.Abort()
+		return
 	})
-	v1 := app.Group("/v1")
-	v1.Get("/rss2json", func(ctx *fiber.Ctx) {
-		rssAddr := ctx.Query("rss")
-		if rssAddr == "" {
-			ctx.JSON(model.Dict{
-				"code": -1,
-				"msg":  "缺少rss参数",
-			})
-			return
-		}
-		fp := gofeed.NewParser()
-		feed, err := fp.ParseURL(rssAddr)
-		if err != nil {
-			ctx.JSON(model.Dict{
-				"code": -1,
-				"msg":  "解析rss错误",
-			})
-			log.Println(err)
-			return
-		}
-		ctx.JSON(model.Dict{
-			"code": 0,
-			"msg":  "",
-			"data": model.Dict{
-				"title": feed.Title,
-				"items": feed.Items,
-			},
-		})
-	})
-
-	err := app.Listen(4000)
-	if err != nil {
+	if err := r.Run(":4000"); err != nil {
 		panic(err)
 	}
 }
