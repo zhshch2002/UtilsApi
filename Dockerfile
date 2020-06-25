@@ -1,7 +1,7 @@
 FROM golang:1.14-alpine as GO_BUILD
 WORKDIR /app
 ADD . /app
-RUN swag init -g .\cmd\main.go && go build -i -v ./cmd/main.go
+RUN go get -u github.com/swaggo/swag/cmd/swag && swag init -g .\cmd\main.go && go build -i -v ./cmd/main.go
 
 FROM alpine
 LABEL maintainer="zhshch<zhshch@athorx.com>"
