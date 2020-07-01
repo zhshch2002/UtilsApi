@@ -5,7 +5,8 @@
   "author": "zhshch2002",
   "private": true,
   "scripts": {
-    "server": "supervisor ./build/main.js",
+    "dev": "supervisor ./build/main.js",
+    "server": "node ./build/main.js",
     "build": "tsc",
     "watch": "tsc -w"
   },
