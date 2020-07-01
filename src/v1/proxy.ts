@@ -1,17 +1,17 @@
 import axios from 'axios'
 import cheerio from 'cheerio';
-import sharp, {FitEnum} from 'sharp';
+import sharp from 'sharp';
+
+let ac = require('apicache')
+import rp = require('rss-parser');
 import express = require('express');
 
 const app = express();
+let cache = ac.middleware
 export = app
 
-app.get("/proxy", async (req, resp) => {
+app.get("/proxy", cache('1 minutes'), async (req, resp) => {
     let u = req.query.url as string;
-    if (u == undefined) {
-        resp.send("miss params url")
-        return
-    }
     let r = await axios.get(u, {
         responseType: "arraybuffer"
     })
@@ -27,14 +27,10 @@ flip                 上下翻转
 flop                 左右翻转
 quality=80           图像质量
  */
-app.get("/img", img)
+app.get("/img", cache('1 hours'), img)
 
-app.get("/favicon", async (req, resp) => {
+app.get("/favicon", cache('1 hours'), async (req, resp) => {
     let u = req.query.url as string;
-    if (u == undefined) {
-        resp.send("miss params url")
-        return
-    }
     let r = await axios.get(u)
     let h = cheerio.load(r.data)
     let icon = new URL("/favicon.ico", u).href
@@ -52,11 +48,6 @@ app.get("/favicon", async (req, resp) => {
 
 async function img(req: express.Request, resp: express.Response) {
     let u = resp.locals.url as string || req.query.url as string;
-    console.log(u)
-    if (u == undefined) {
-        resp.send("miss params url")
-        return
-    }
     let r = await axios.get(u, {
         responseType: "arraybuffer"
     })
@@ -102,12 +93,8 @@ async function img(req: express.Request, resp: express.Response) {
     })
 }
 
-app.get("/htmlProxy", async (req, resp) => {
+app.get("/htmlProxy", cache('1 minutes'), async (req, resp) => {
     let u = req.query.url as string;
-    if (u == undefined) {
-        resp.send("miss params url")
-        return
-    }
     let r = await axios.get(u)
     resp.statusCode = r.status;
     resp.type(r.headers["content-type"])
@@ -134,4 +121,11 @@ app.get("/htmlProxy", async (req, resp) => {
     })
 
     resp.send(h.html())
+})
+
+app.get("/rss", cache('1 minutes'), async (req, resp) => {
+    let u = req.query.url as string;
+    let parser = new rp();
+    let feed = await parser.parseURL(u);
+    resp.send(feed)
 })

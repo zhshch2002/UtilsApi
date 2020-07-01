@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "author": "zhshch2002",
-  "private": true,
+  "license": "Apache License 2.0",
   "scripts": {
     "dev": "supervisor ./build/main.js",
     "server": "node ./build/main.js",
@@ -13,10 +13,14 @@
   "dependencies": {
     "@types/cheerio": "^0.22.18",
     "@types/express": "^4.17.6",
+    "@types/memjs": "^1.2.1",
     "@types/sharp": "^0.25.0",
+    "apicache": "^1.5.3",
     "axios": "^0.19.2",
     "cheerio": "^1.0.0-rc.3",
     "express": "^4.17.1",
+    "memjs": "^1.2.2",
+    "rss-parser": "^3.8.0",
     "sharp": "^0.25.4"
   }
 }
